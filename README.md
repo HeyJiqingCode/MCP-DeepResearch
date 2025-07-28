@@ -74,7 +74,7 @@ python server.py
 git clone https://github.com/HeyJiqingCode/MCP-DeepResearch.git
 ```
 
-**2/ Build the image**:
+**2/ Build Docker Image**
 ```bash
 cd MCP-DeepResearch
 docker build -t deep-research-mcp:0.0.1 -f Dockerfile .
