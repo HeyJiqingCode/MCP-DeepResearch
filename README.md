@@ -5,7 +5,7 @@ A Model Context Protocol (MCP) server powered by Azure AI Agents for comprehensi
 ## Features
 
 - 🔍 **Comprehensive Research**: Powered by Azure AI Agents with Deep Research Tool
-- 🌐 **Multi-language Support**: Research in 7 languages (Chinese, English, Spanish, French, German, Japanese, Korean)
+- 🌐 **Multi-language Support**: Research in multi languages
 - 📊 **Flexible Scope**: 5 research depth levels (overview, brief, detailed, focused, comprehensive)
 - 💬 **Interactive Mode**: Optional clarifying questions for better research quality
 - 🔄 **Conversation Context**: Maintain context across multiple research queries
