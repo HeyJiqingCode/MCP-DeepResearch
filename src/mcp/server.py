@@ -110,7 +110,7 @@ async def fetch_and_report_new_agent_message(
 ) -> Tuple[Optional[str], bool]:
     """Fetch last AGENT message; if new, stream concise update via ctx.info.
 
-    Returns: (new_last_message_id, is_question)
+    Returns: (new_last_message_id, False) — boolean reserved for future use.
     """
     try:
         response = await agents_client.messages.get_last_message_by_role(
@@ -180,7 +180,7 @@ async def deep_research(
     language: Annotated[str, Field(description="The language to use for the report in ISO 639-1 format, e.g., 'en' for English, 'zh' for Chinese")] = "zh",
     research_scope: Annotated[str, Field(description="Research report detail level: 'overview', 'brief', 'detailed', 'focused', 'comprehensive'")] = "overview",
     interactive: Annotated[bool, Field(description="Whether to ask clarifying questions before starting research")] = True,
-    timeout_seconds: Annotated[int, Field(description="Maximum time to wait for completion (1200-1800 seconds)", ge=1800, le=3600)] = 1800
+    timeout_seconds: Annotated[int, Field(description="Maximum time to wait for completion (1800-3600 seconds)", ge=1800, le=3600)] = 1800
 ) -> str:
     """Perform deep research with conversation-based context management"""
     
@@ -236,7 +236,6 @@ async def deep_research(
             
             # Get agent and thread objects
             agent_id = await create_or_get_agent()
-            agent = await agents_client.get_agent(agent_id)
             thread = await agents_client.threads.get(thread_id)
             
             # Create research instruction based on scope (report detail level)
@@ -301,7 +300,7 @@ Research Guidelines:
 - {language_instruction}."""
             
             # Create message in thread
-            message = await agents_client.messages.create(
+            await agents_client.messages.create(
                 thread_id=thread.id,
                 role="user", 
                 content=research_message
