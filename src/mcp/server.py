@@ -3,7 +3,7 @@ import os
 import time
 import logging
 import datetime
-from typing import Dict, Annotated
+from typing import Dict, Annotated, Optional, Tuple
 from pydantic import Field
 
 from fastmcp import FastMCP, Context
@@ -100,6 +100,49 @@ async def get_conversation_thread(conversation_id: str, agents_client) -> str:
         conversation_threads[conversation_id] = thread.id
     
     return conversation_threads[conversation_id]
+
+async def fetch_and_report_new_agent_message(
+    *,
+    thread_id: str,
+    agents_client,
+    last_message_id: Optional[str],
+    ctx: Context,
+) -> Tuple[Optional[str], bool]:
+    """Fetch last AGENT message; if new, stream concise update via ctx.info.
+
+    Returns: (new_last_message_id, is_question)
+    """
+    try:
+        response = await agents_client.messages.get_last_message_by_role(
+            thread_id=thread_id,
+            role=MessageRole.AGENT,
+        )
+    except Exception as e:
+        logger.debug(f"Skip latest-message fetch (transient): {e}")
+        return last_message_id, False
+
+    if not response or response.id == last_message_id:
+        return last_message_id, False
+
+    # Collate textual content
+    agent_text = "\n".join(t.text.value for t in (response.text_messages or []))
+    summary = agent_text.strip() if agent_text.strip() else "(no textual content)"
+
+    # Build a compact update message
+    lines = ["[Agent update]", summary]
+    # Append unique citations if any
+    if getattr(response, "url_citation_annotations", None):
+        seen = set()
+        for ann in response.url_citation_annotations:
+            url = ann.url_citation.url
+            title = ann.url_citation.title or url
+            if url not in seen:
+                lines.append(f"Reference: {title} - {url}")
+                seen.add(url)
+
+    # Stream update to caller
+    await ctx.info("\n".join(lines))
+    return response.id, False
 
 async def create_research_summary(message: ThreadMessage) -> str:
     """Create formatted research summary from agent message"""
@@ -271,6 +314,7 @@ Research Guidelines:
             run = await agents_client.runs.create(thread_id=thread.id, agent_id=agent_id)
             
             start_time = time.time()
+            last_message_id: Optional[str] = None
             
             # Poll run status with timeout
             while run.status in ("queued", "in_progress"):
@@ -279,11 +323,18 @@ Research Guidelines:
                     await ctx.error(f"Research timed out after {timeout_seconds} seconds")
                     return f"Research request timed out after {timeout_seconds} seconds. Please try a shorter timeout."
                 
-                # Regular progress updates
-                if int(elapsed) % 120 == 0 and elapsed > 0:
-                    await ctx.info(f"Research in progress... {int(elapsed//60)}min elapsed")
-                
-                await asyncio.sleep(15)  # Increased polling interval
+                # Report any new agent message before next status poll
+                try:
+                    last_message_id, _ = await fetch_and_report_new_agent_message(
+                        thread_id=thread.id,
+                        agents_client=agents_client,
+                        last_message_id=last_message_id,
+                        ctx=ctx,
+                    )
+                except Exception as e:
+                    logger.debug(f"latest-message update skipped: {e}")
+
+                await asyncio.sleep(10)  # slightly tighter cadence for fresher updates
                 run = await agents_client.runs.get(thread_id=thread.id, run_id=run.id)
             
             logger.info(f"Research completed with status: {run.status}")
@@ -294,6 +345,17 @@ Research Guidelines:
                 return error_msg
             
             # Get final research result
+            # Final sweep for any last message produced right at completion
+            try:
+                last_message_id, _ = await fetch_and_report_new_agent_message(
+                    thread_id=thread.id,
+                    agents_client=agents_client,
+                    last_message_id=last_message_id,
+                    ctx=ctx,
+                )
+            except Exception:
+                pass
+
             final_message = await agents_client.messages.get_last_message_by_role(
                 thread_id=thread.id,
                 role=MessageRole.AGENT
