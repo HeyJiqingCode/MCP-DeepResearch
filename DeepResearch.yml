@@ -162,9 +162,10 @@ model_config:
     strategy: function_call
     tools:
     - enabled: true
+      isDeleted: false
       notAuthor: false
-      provider_id: deepresearch-demo-1
-      provider_name: DeepResearch
+      provider_id: mcp-server-research-1
+      provider_name: DeepResearchAgent
       provider_type: mcp
       tool_label: deep_research
       tool_name: deep_research
@@ -199,14 +200,15 @@ model_config:
     - .MOV
     - .MPEG
     - .WEBM
-    allowed_file_types: []
+    allowed_file_types:
+    - image
     allowed_file_upload_methods:
     - remote_url
     - local_file
-    enabled: false
+    enabled: true
     image:
       detail: high
-      enabled: false
+      enabled: true
       number_limits: 3
       transfer_methods:
       - remote_url
@@ -272,23 +274,21 @@ model_config:
     2. Core Products and Technology\n3. Market Position and Competitors  \n4. Financial\
     \ Performance and Business Model\n5. SWOT Analysis and Future Outlook\n\nPlease\
     \ reply with the number or content of your chosen option(s) to proceed with targeted\
-    \ research.\n\n```\n\n### 3. Notification Interactions\n\nWhen the user confirms\
-    \ the number or content they want to research, the DeepResearch tool may give\
-    \ a response like: \"I have obtained sufficient information and will now begin\
-    \ the research.\" Notifications like this are used to inform the user whether\
-    \ the research topic is clear. \n\n**Your Response Pattern:**\n- You need to re-send\
-    \ the tool's notification response EXACTLY as provided.\n- Proceed to the next\
-    \ step without waiting for user input.\n\n### 4. Follow-up Interactions\n\nFor\
-    \ subsequent exchanges in the same session:\n\n```json\n{\n  \"tool\": \"deep_research\"\
-    , \n  \"parameters\": {\n    \"topic\": \"[user's response/selection]\",\n   \
-    \ \"conversation_id\": \"research_20250124_143052_7491\",  // SAME ID\n    \"\
-    language\": \"zh\",\n    \"research_scope\": \"detailed\",\n    \"interactive\"\
-    : true\n  }\n}\n\n\n### 5. Final Report Processing\n\nWhen the tool returns a\
-    \ final research report:\n\n**Your Responsibilities:**\n- Organize content into\
-    \ clear, well-structured sections\n- Highlight key insights and findings\n- Improve\
-    \ formatting and readability\n- PRESERVE all original content - do not delete\
-    \ facts, data, or core points\n- RETAIN all \"References\" sections - place at\
-    \ the end of your report\n- Maintain professional tone and structure\n\n**Report\
+    \ research.\n\n```\n\n### 3. Notification Interactions\n\nYou are an agent and\
+    \ also a mcp client, you will receive mcp server nitifications like \"MCP Notification:\
+    \ [DeepResearch] [Agent update] xxx\". When you receive mcp server notifications,\
+    \ you need:\n\n- You need to re-send the tool's notification response EXACTLY\
+    \ as provided.\n- Proceed to the next step without waiting for user input.\n\n\
+    ### 4. Follow-up Interactions\n\nFor subsequent exchanges in the same session:\n\
+    \n```json\n{\n  \"tool\": \"deep_research\", \n  \"parameters\": {\n    \"topic\"\
+    : \"[user's response/selection]\",\n    \"conversation_id\": \"research_20250124_143052_7491\"\
+    ,  // SAME ID\n    \"language\": \"zh\",\n    \"research_scope\": \"detailed\"\
+    ,\n    \"interactive\": true\n  }\n}\n\n\n### 5. Final Report Processing\n\nWhen\
+    \ the tool returns a final research report:\n\n**Your Responsibilities:**\n- Organize\
+    \ content into clear, well-structured sections\n- Highlight key insights and findings\n\
+    - Improve formatting and readability\n- PRESERVE all original content - do not\
+    \ delete facts, data, or core points\n- RETAIN all \"References\" sections - place\
+    \ at the end of your report\n- Maintain professional tone and structure\n\n**Report\
     \ Structure:**\n\n```text\n# [Research Topic] - Analysis Report\n\n## Executive\
     \ Summary\n[Key findings and insights]\n\n## [Main Content Sections]\n[Organized\
     \ content from tool response]\n\n## Key Insights\n[Highlighted important findings]\n\
@@ -411,4 +411,4 @@ model_config:
     language: ''
     voice: ''
   user_input_form: []
-version: 0.3.0
+version: 0.3.1
