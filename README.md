@@ -83,7 +83,7 @@ docker build -t deep-research-mcp:0.0.1 -f Dockerfile .
 **3/ Run the container**:
 ```bash
 # If you have an agent id, please use the following environment variables.
-docker run itd -p 8000:8000 \
+docker run itd -p 8000:8000 --name DeepResearch \
   -e AZURE_TENANT_ID=your_tenant_id \
   -e AZURE_CLIENT_ID=your_client_id \
   -e AZURE_CLIENT_SECRET=your_secret \
@@ -92,7 +92,7 @@ docker run itd -p 8000:8000 \
   deep-research-mcp:0.0.1
 
 # If you do not have an agent id, please use the following environment variables.
-docker run -itd -p 8000:8000 \
+docker run -itd -p 8000:8000 --name DeepResearch \
   -e AZURE_TENANT_ID=your_tenant_id \
   -e AZURE_CLIENT_ID=your_client_id \
   -e AZURE_CLIENT_SECRET=your_secret \
